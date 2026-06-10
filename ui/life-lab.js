@@ -35,10 +35,12 @@
   }
   function selectSpecies(id) { Lab.speciesId = +id; render(); }
   function buildShell() {
+    if ($("lifeLabRoot")) return;
     const btn = document.createElement("button");
     btn.id = "lifeLabBtn"; btn.className = "ctrl-btn"; btn.textContent = "✦ LIFE LAB";
     btn.onclick = open;
     const footer = document.querySelector("footer");
+    if (!footer) return;
     footer.insertBefore(btn, footer.querySelector(".grow"));
 
     const root = document.createElement("div"); root.id = "lifeLabRoot"; root.className = "life-lab-backdrop";
@@ -166,6 +168,7 @@
     buildShell();
     document.addEventListener("keydown", e => { if (e.key === "Escape" && Lab.open) close(); if ((e.key === "l" || e.key === "L") && e.target.tagName !== "INPUT") open(); });
   }
-  window.ProcLifeLab = { open, close, render, selectSpecies };
-  window.addEventListener("DOMContentLoaded", init);
+  window.ProcLifeLab = { open, close, render, selectSpecies, init };
+  if (document.readyState === "loading") window.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
