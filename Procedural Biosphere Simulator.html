@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Procedural Planet & Evolution Simulator — Milestone 0–7 spike</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #05080b;
+    --panel: #0b1015;
+    --panel2: #0e151c;
+    --line: #1c2730;
+    --line2: #2a3a47;
+    --ink: #cdd9e0;
+    --ink-dim: #7e8f9a;
+    --ink-faint: #4d5b65;
+    --amber: #ffe9a8;
+    --green: #7fe6a0;
+    --cyan: #7fd0ff;
+    --hot: #ff8a5c;
+    --red: #ff6b6b;
+    --violet: #b69aff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif; overflow: hidden; }
+  .mono { font-family: "IBM Plex Mono", monospace; }
+  button { font-family: "IBM Plex Mono", monospace; cursor: pointer; }
+  a { color: var(--cyan); cursor: pointer; text-decoration: none; border-bottom: 1px dotted currentColor; }
+  .muted { color: var(--ink-faint); font-size: 12px; padding: 8px 2px; }
+
+  #app { display: grid; grid-template-columns: 1fr 384px; grid-template-rows: auto 1fr auto;
+    height: 100vh; gap: 1px; background: var(--line); }
+
+  /* ---- top bar ---- */
+  header { grid-column: 1 / 3; background: var(--panel); display: flex; align-items: center;
+    gap: 18px; padding: 0 16px; height: 52px; }
+  .logo { font-family: "IBM Plex Mono", monospace; font-weight: 600; letter-spacing: 1px;
+    font-size: 13px; color: var(--amber); white-space: nowrap; }
+  .logo b { color: var(--ink); }
+  .era { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--cyan);
+    letter-spacing: 2px; padding: 4px 12px; border: 1px solid var(--line2); border-radius: 3px;
+    background: #0a1218; }
+  .age { font-family: "IBM Plex Mono", monospace; font-size: 18px; color: var(--ink); font-weight: 500; }
+  .age-lbl { font-size: 10px; color: var(--ink-faint); letter-spacing: 1.5px; }
+  .grow { flex: 1; }
+  .seed-wrap { display: flex; align-items: center; gap: 6px; }
+  #seedInput { background: #06090d; border: 1px solid var(--line2); color: var(--amber);
+    font-family: "IBM Plex Mono", monospace; font-size: 12px; padding: 6px 8px; width: 130px; border-radius: 3px; }
+  .mini-btn { background: #0e151c; border: 1px solid var(--line2); color: var(--ink-dim);
+    font-size: 11px; padding: 6px 10px; border-radius: 3px; }
+  .mini-btn:hover { color: var(--ink); border-color: var(--ink-dim); }
+
+  /* ---- left column: solar + map ---- */
+  .left { background: var(--bg); display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .section-lbl { font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 2px;
+    color: var(--ink-faint); padding: 8px 14px 6px; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: center; }
+  #sysWrap { background: #060a0e; border-bottom: 1px solid var(--line); }
+  #sysCanvas { width: 100%; height: 170px; display: block; }
+  .map-area { flex: 1; overflow: auto; padding: 14px; display: flex; align-items: flex-start; justify-content: center; }
+  #mapCanvas { image-rendering: pixelated; border: 1px solid var(--line2); max-width: 100%; height: auto;
+    background: #05080b; box-shadow: 0 0 0 1px #000, 0 8px 40px rgba(0,0,0,0.6); }
+  .overlay-row { display: flex; flex-wrap: wrap; gap: 4px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  .ov-btn { background: transparent; border: 1px solid var(--line2); color: var(--ink-dim);
+    font-size: 10px; letter-spacing: 0.5px; padding: 4px 8px; border-radius: 3px; }
+  .ov-btn:hover { color: var(--ink); }
+  .ov-btn.active { background: var(--amber); color: #1a1408; border-color: var(--amber); font-weight: 600; }
+
+  /* ---- right column: panels ---- */
+  .right { background: var(--panel); display: flex; flex-direction: column; overflow: hidden; }
+  .debug { border-bottom: 1px solid var(--line); padding: 6px 0; max-height: 268px; overflow: auto; }
+  .dbg-row { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace;
+    font-size: 11px; padding: 2px 14px; }
+  .dbg-row span { color: var(--ink-faint); }
+  .dbg-row b { color: var(--ink); font-weight: 500; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--line); }
+  .tab { flex: 1; background: var(--panel2); border: none; border-bottom: 2px solid transparent;
+    color: var(--ink-dim); font-size: 11px; letter-spacing: 1px; padding: 9px; }
+  .tab.active { color: var(--amber); border-bottom-color: var(--amber); background: var(--panel); }
+  .panel-body { flex: 1; overflow: auto; display: flex; flex-direction: column; }
+  .filter-row { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line);
+    font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--ink-faint); }
+  .filter-row input[type=range] { flex: 1; accent-color: var(--amber); }
+
+  /* events */
+  #timelineBody, #speciesBody { padding: 6px 0; overflow: auto; }
+  .ev { padding: 7px 14px; border-bottom: 1px solid #121a21; }
+  .ev-head { display: flex; justify-content: space-between; align-items: baseline; }
+  .ev-age { font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 600; }
+  .ev-imp { font-size: 8px; color: var(--ink-faint); letter-spacing: 1px; }
+  .ev-text { font-size: 12px; line-height: 1.45; color: var(--ink); margin-top: 3px; text-wrap: pretty; }
+
+  /* species rows */
+  .sp-row { display: flex; align-items: center; gap: 8px; padding: 6px 14px; font-size: 12px; cursor: pointer; border-bottom: 1px solid #121a21; }
+  .sp-row:hover { background: #0e161d; }
+  .sp-row.sel { background: #14202a; }
+  .sp-row.extinct { opacity: 0.45; }
+  .sp-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; box-shadow: 0 0 6px currentColor; }
+  .sp-name { flex: 1; font-family: "IBM Plex Mono", monospace; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sp-role { font-size: 10px; color: var(--ink-faint); }
+  .sp-bm { font-family: "IBM Plex Mono", monospace; font-size: 10px; color: var(--green); width: 64px; text-align: right; }
+
+  #spDetail { border-top: 1px solid var(--line2); background: #0a1016; padding: 10px 14px; display: none; }
+  .sp-d-head { display: flex; align-items: center; gap: 8px; font-family: "IBM Plex Mono", monospace; font-size: 13px; }
+  .sp-d-head b { flex: 1; }
+  .sp-d-meta { font-size: 11px; color: var(--ink-dim); margin-top: 4px; }
+  .traits { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 14px; margin-top: 10px; }
+  .tr { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--ink-faint); }
+  .tr span { width: 60px; font-family: "IBM Plex Mono", monospace; }
+  .tr i { height: 5px; background: linear-gradient(90deg, var(--cyan), var(--green)); display: block; border-radius: 2px; min-width: 1px; }
+  .x { background: none; border: none; color: var(--ink-faint); font-size: 12px; }
+  .x:hover { color: var(--red); }
+
+  /* cell info floats over map */
+  #cellInfo { position: absolute; right: 398px; bottom: 70px; width: 280px; background: rgba(8,13,18,0.96);
+    border: 1px solid var(--line2); border-radius: 5px; padding: 10px 12px; display: none; backdrop-filter: blur(4px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 5; }
+  .ci-head { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 1px; color: var(--amber);
+    display: flex; justify-content: space-between; margin-bottom: 8px; }
+  .ci-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; }
+  .ci-cell { display: flex; justify-content: space-between; font-family: "IBM Plex Mono", monospace; font-size: 11px; }
+  .ci-cell span { color: var(--ink-faint); }
+  .ci-sub { font-size: 9px; letter-spacing: 1px; color: var(--ink-faint); margin: 8px 0 4px; }
+  .ci-pops .cp { font-size: 11px; padding: 2px 0; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .ci-pops .cp:hover { color: var(--amber); }
+  .ci-pops .cp b { margin-left: auto; color: var(--green); }
+
+  /* ---- bottom control bar ---- */
+  footer { grid-column: 1 / 3; background: var(--panel); display: flex; align-items: center;
+    gap: 16px; padding: 0 16px; height: 54px; }
+  .speed-row, .ctrl-group { display: flex; gap: 4px; align-items: center; }
+  .speed-btn { background: #0e151c; border: 1px solid var(--line2); color: var(--ink-dim);
+    width: 42px; height: 30px; border-radius: 3px; font-size: 10px; }
+  .speed-btn:hover { color: var(--ink); }
+  .speed-btn.active { background: var(--green); color: #04130a; border-color: var(--green); }
+  .ctrl-btn { background: #0e151c; border: 1px solid var(--line2); color: var(--ink-dim);
+    height: 30px; padding: 0 12px; border-radius: 3px; font-size: 11px; }
+  .ctrl-btn:hover { color: var(--ink); border-color: var(--ink-dim); }
+  .divider { width: 1px; height: 28px; background: var(--line2); }
+  .label-sm { font-family: "IBM Plex Mono", monospace; font-size: 9px; letter-spacing: 1.5px; color: var(--ink-faint); }
+  .test-output { position: fixed; left: 16px; bottom: 64px; width: 560px; max-height: 50vh; overflow: auto;
+    background: rgba(5,9,12,0.97); border: 1px solid var(--line2); border-radius: 5px; padding: 12px 14px;
+    font-family: "IBM Plex Mono", monospace; font-size: 11px; white-space: pre-wrap; display: none; z-index: 20;
+    box-shadow: 0 16px 60px rgba(0,0,0,0.7); }
+  .test-output.ok { border-color: var(--green); color: var(--green); }
+  .test-output.bad { border-color: var(--red); color: var(--red); }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: #1c2730; border-radius: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">◍ PROCEDURAL <b>BIOSPHERE</b> ENGINE</div>
+    <div class="era mono" id="eraLabel">FORMATION ERA</div>
+    <div class="grow"></div>
+    <div style="text-align:right">
+      <div class="age-lbl">SIMULATION AGE</div>
+      <div class="age mono" id="ageLabel">0 yr</div>
+    </div>
+    <div class="divider"></div>
+    <div class="seed-wrap">
+      <span class="label-sm">SEED</span>
+      <input id="seedInput" class="mono" value="tethys-12" spellcheck="false" />
+      <button class="mini-btn" id="newBtn">LOAD</button>
+      <button class="mini-btn" id="randBtn">⟳ RANDOM</button>
+    </div>
+  </header>
+
+  <div class="left">
+    <div class="section-lbl">SOLAR SYSTEM <span id="sysMeta"></span></div>
+    <div id="sysWrap"><canvas id="sysCanvas"></canvas></div>
+    <div class="overlay-row" id="overlayRow"></div>
+    <div class="map-area"><canvas id="mapCanvas"></canvas></div>
+  </div>
+
+  <div class="right">
+    <div class="section-lbl">DEVELOPER / WORLD STATE
+      <button class="mini-btn" id="testBtn">▷ RUN TESTS</button>
+    </div>
+    <div class="debug"><div id="debugBody"></div></div>
+    <div class="tabs">
+      <button class="tab active" id="tabTimeline">TIMELINE</button>
+      <button class="tab" id="tabSpecies">SPECIES BROWSER</button>
+    </div>
+    <div class="panel-body" id="timelinePanel" style="display:flex">
+      <div class="filter-row">MIN IMPORTANCE <input type="range" id="impFilter" min="0" max="10" step="1" value="3" /><span id="impVal">3</span></div>
+      <div id="timelineBody"></div>
+    </div>
+    <div class="panel-body" id="speciesPanel" style="display:none">
+      <div id="speciesBody"></div>
+      <div id="spDetail"></div>
+    </div>
+  </div>
+
+  <footer>
+    <span class="label-sm">SPEED</span>
+    <div class="speed-row" id="speedRow"></div>
+    <div class="divider"></div>
+    <div class="ctrl-group">
+      <button class="ctrl-btn" id="stepBtn">▷ STEP</button>
+      <button class="ctrl-btn" id="step10Btn">▷▷ STEP 10</button>
+    </div>
+    <div class="grow"></div>
+    <span class="label-sm" id="hintBar">SPACE pause/play · S step · 1–5 speed · N new world · click a region to inspect</span>
+  </footer>
+</div>
+
+<div id="cellInfo"></div>
+<pre id="testOutput" class="test-output"></pre>
+
+<script src="sim/rng.js"></script>
+<script src="sim/names.js"></script>
+<script src="sim/starsystem.js"></script>
+<script src="sim/terrain.js"></script>
+<script src="sim/climate.js"></script>
+<script src="sim/impacts.js"></script>
+<script src="sim/biology.js"></script>
+<script src="sim/ecology.js"></script>
+<script src="sim/history.js"></script>
+<script src="sim/world.js"></script>
+<script src="ui/renderer.js"></script>
+<script src="ui/app.js"></script>
+</body>
+</html>
