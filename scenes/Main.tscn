@@ -1,0 +1,113 @@
+[gd_scene load_steps=2 format=3 uid="uid://procuniverse_main"]
+
+[ext_resource type="Script" path="res://scripts/ui/Main.gd" id="1_main"]
+
+[node name="Main" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_main")
+
+[node name="Root" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopBar" type="HBoxContainer" parent="Root"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+
+[node name="Title" type="Label" parent="Root/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "◍ PROCUNIVERSE · GODOT PORT"
+
+[node name="EraLabel" type="Label" parent="Root/TopBar"]
+layout_mode = 2
+text = "FORMATION ERA"
+
+[node name="AgeLabel" type="Label" parent="Root/TopBar"]
+layout_mode = 2
+text = "0 yr"
+
+[node name="SeedEdit" type="LineEdit" parent="Root/TopBar"]
+layout_mode = 2
+custom_minimum_size = Vector2(150, 0)
+text = "tethys-12"
+
+[node name="LoadButton" type="Button" parent="Root/TopBar"]
+layout_mode = 2
+text = "LOAD"
+
+[node name="Body" type="HSplitContainer" parent="Root"]
+layout_mode = 2
+size_flags_vertical = 3
+split_offset = 850
+
+[node name="Left" type="VBoxContainer" parent="Root/Body"]
+layout_mode = 2
+
+[node name="MapPanel" type="PanelContainer" parent="Root/Body/Left"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Map" type="TextureRect" parent="Root/Body/Left/MapPanel"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Controls" type="HBoxContainer" parent="Root/Body/Left"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+
+[node name="PauseButton" type="Button" parent="Root/Body/Left/Controls"]
+layout_mode = 2
+text = "PAUSE"
+
+[node name="StepButton" type="Button" parent="Root/Body/Left/Controls"]
+layout_mode = 2
+text = "STEP"
+
+[node name="RunButton" type="Button" parent="Root/Body/Left/Controls"]
+layout_mode = 2
+text = "RUN"
+
+[node name="SpeedLabel" type="Label" parent="Root/Body/Left/Controls"]
+layout_mode = 2
+text = "speed: 12 ticks/s"
+
+[node name="Right" type="VBoxContainer" parent="Root/Body"]
+layout_mode = 2
+custom_minimum_size = Vector2(360, 0)
+
+[node name="Stats" type="RichTextLabel" parent="Root/Body/Right"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 210)
+bbcode_enabled = true
+text = ""
+
+[node name="SpeciesTitle" type="Label" parent="Root/Body/Right"]
+layout_mode = 2
+text = "SPECIES"
+
+[node name="SpeciesList" type="ItemList" parent="Root/Body/Right"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 190)
+
+[node name="EventsTitle" type="Label" parent="Root/Body/Right"]
+layout_mode = 2
+text = "TIMELINE"
+
+[node name="Events" type="RichTextLabel" parent="Root/Body/Right"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = ""
