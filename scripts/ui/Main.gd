@@ -68,30 +68,30 @@ func _refresh() -> void:
 func _render_map() -> void:
 	for c in world.cells:
 		var color := _cell_color(c)
-		map_image.set_pixel(c.x, c.y, color)
+		map_image.set_pixel(int(c["x"]), int(c["y"]), color)
 	map_texture.update(map_image)
 
 func _cell_color(c: Dictionary) -> Color:
-	if c.biomass > 1.0 and c.dominant_species >= 0 and c.dominant_species < world.species.size():
-		var sp: Dictionary = world.species[c.dominant_species]
-		var base: Color = sp.color
-		var strength: float = clamp(c.biomass / 180.0, 0.25, 1.0)
-		return base.lerp(Color.WHITE, 0.12) * Color(strength, strength, strength, 1.0)
-	if c.water:
-		var depth := clamp(-c.elevation, 0.0, 1.4)
+	if float(c["biomass"]) > 1.0 and int(c["dominant_species"]) >= 0 and int(c["dominant_species"]) < world.species.size():
+		var sp: Dictionary = world.species[int(c["dominant_species"])]
+		var base: Color = sp["color"]
+		var strength: float = clamp(float(c["biomass"]) / 180.0, 0.25, 1.0)
+		return Color(base.r * strength, base.g * strength, base.b * strength, 1.0).lerp(Color.WHITE, 0.12)
+	if bool(c["water"]):
+		var depth := clamp(-float(c["elevation"]), 0.0, 1.4)
 		return Color(0.03, 0.12 + depth * 0.13, 0.22 + depth * 0.28)
-	if c.crater > 0.05:
-		return Color(0.28 + c.crater * 0.25, 0.23, 0.18)
-	if c.elevation > 0.65:
+	if float(c["crater"]) > 0.05:
+		return Color(0.28 + float(c["crater"]) * 0.25, 0.23, 0.18)
+	if float(c["elevation"]) > 0.65:
 		return Color(0.43, 0.39, 0.34)
-	if c.moisture > 0.58 and world.o2 > 1.0:
+	if float(c["moisture"]) > 0.58 and world.o2 > 1.0:
 		return Color(0.16, 0.34, 0.18)
-	return Color(0.22 + c.moisture * 0.16, 0.18 + c.moisture * 0.12, 0.12)
+	return Color(0.22 + float(c["moisture"]) * 0.16, 0.18 + float(c["moisture"]) * 0.12, 0.12)
 
 func _render_stats() -> void:
 	var live := 0
 	for sp in world.species:
-		if not sp.extinct:
+		if not bool(sp["extinct"]):
 			live += 1
 	stats.text = "[b]WORLD STATE[/b]\n"
 	stats.text += "seed: %s\n" % world.seed_string
@@ -101,20 +101,20 @@ func _render_stats() -> void:
 	stats.text += "O₂: %.3f kPa\n" % world.o2
 	stats.text += "CO₂: %.2f kPa\n" % world.co2
 	stats.text += "species: %d / %d living\n" % [live, world.species.size()]
-	stats.text += "biomass: %d" % int(world._total_biomass())
+	stats.text += "biomass: %d" % int(world.total_biomass())
 
 func _render_species() -> void:
 	species_list.clear()
 	for sp in world.species:
-		var suffix := "" if not sp.extinct else " †"
-		species_list.add_item("%s · %s · %d bm%s" % [sp.name, sp.role, int(sp.biomass), suffix])
+		var suffix := "" if not bool(sp["extinct"]) else " †"
+		species_list.add_item("%s · %s · %d bm%s" % [sp["name"], sp["role"], int(sp["biomass"]), suffix])
 
 func _render_events() -> void:
 	var lines: Array[String] = []
 	var start := max(0, world.events.size() - 24)
 	for i in range(world.events.size() - 1, start - 1, -1):
 		var e: Dictionary = world.events[i]
-		lines.append("[color=#ffe9a8]%s[/color] %s" % [_fmt_event_time(e.time), e.text])
+		lines.append("[color=#ffe9a8]%s[/color] %s" % [_fmt_event_time(float(e["time"])), e["text"]])
 	events.text = "\n\n".join(lines)
 
 func _fmt_event_time(years: float) -> String:
