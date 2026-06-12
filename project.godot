@@ -1,0 +1,21 @@
+; Engine configuration file.
+; Open this folder directly in Godot 4.x.
+
+config_version=5
+
+[application]
+config/name="ProcUniverse"
+config/description="A deterministic procedural planet and evolution simulator ported from the web prototype into Godot."
+run/main_scene="res://scenes/Main.tscn"
+config/features=PackedStringArray("4.0")
+config/icon="res://icon.svg"
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=780
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
